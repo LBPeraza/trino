@@ -159,8 +159,6 @@ import static io.airlift.slice.Slices.utf8Slice;
 import static io.airlift.slice.Slices.wrappedBuffer;
 import static io.trino.plugin.base.util.JsonTypeUtil.jsonParse;
 import static io.trino.plugin.base.util.JsonTypeUtil.toJsonValue;
-import static io.trino.plugin.geospatial.GeoFunctions.stAsBinary;
-import static io.trino.plugin.geospatial.GeoFunctions.stGeomFromBinary;
 import static io.trino.plugin.jdbc.DecimalConfig.DecimalMapping.ALLOW_OVERFLOW;
 import static io.trino.plugin.jdbc.DecimalSessionSessionProperties.getDecimalDefaultScale;
 import static io.trino.plugin.jdbc.DecimalSessionSessionProperties.getDecimalRounding;
@@ -1868,9 +1866,9 @@ public class PostgreSqlClient
         return ColumnMapping.sliceMapping(
                 geometryType,
                 (resultSet, columnIndex) -> {
-                    String hexWkb = resultSet.getString(columnIndex);
-                    byte[] wkb = HexFormat.of().parseHex(hexWkb);
-                    return stGeomFromBinary(wrappedBuffer(wkb));
+                    String hexEwkb = resultSet.getString(columnIndex);
+                    byte[] ewkb = HexFormat.of().parseHex(hexEwkb);
+                    return wrappedBuffer(ewkb);
                 },
                 geometryWriteFunction(),
                 DISABLE_PUSHDOWN);
@@ -1883,15 +1881,14 @@ public class PostgreSqlClient
             @Override
             public String getBindExpression()
             {
-                return "ST_GeomFromWKB(?)";
+                return "ST_GeomFromEWKB(?)";
             }
 
             @Override
             public void set(PreparedStatement statement, int index, Slice slice)
                     throws SQLException
             {
-                byte[] bytes = stAsBinary(slice).getBytes();
-                statement.setBytes(index, bytes);
+                statement.setBytes(index, slice.getBytes());
             }
         };
     }
