@@ -133,7 +133,7 @@ public class TestGeoFunctions
     public void testGeometryGetObjectValue()
     {
         BlockBuilder builder = GEOMETRY.createBlockBuilder(null, 1);
-        GEOMETRY.writeSlice(builder, GeoFunctions.stPoint(1.2, 3.4));
+        GEOMETRY.writeSlice(builder, JtsGeometrySerde.serialize(GeoFunctions.stPoint(1.2, 3.4)));
         Block block = builder.build();
 
         assertThat("POINT (1.2 3.4)").isEqualTo(GEOMETRY.getObjectValue(block, 0));
@@ -330,8 +330,7 @@ public class TestGeoFunctions
     private void assertApproximateCentroid(String wkt, Coordinate expectedCentroid, double epsilon)
     {
         try {
-            org.locationtech.jts.geom.Geometry geometry = JtsGeometrySerde.deserialize(
-                    stCentroid(JtsGeometrySerde.serialize(new org.locationtech.jts.io.WKTReader().read(wkt))));
+            org.locationtech.jts.geom.Geometry geometry = stCentroid(new org.locationtech.jts.io.WKTReader().read(wkt));
             org.locationtech.jts.geom.Point actualCentroid = (org.locationtech.jts.geom.Point) geometry;
             assertThat(expectedCentroid.getX()).isCloseTo(actualCentroid.getX(), within(epsilon));
             assertThat(expectedCentroid.getY()).isCloseTo(actualCentroid.getY(), within(epsilon));
