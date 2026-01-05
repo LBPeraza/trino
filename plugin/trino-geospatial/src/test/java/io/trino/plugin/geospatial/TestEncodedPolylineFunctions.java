@@ -98,7 +98,8 @@ public class TestEncodedPolylineFunctions
         assertTrinoExceptionThrownBy(assertions.expression("to_encoded_polyline(ST_GeometryFromText('POINT (-120.2 38.5)'))")::evaluate)
                 .hasErrorCode(INVALID_FUNCTION_ARGUMENT);
 
-        assertTrinoExceptionThrownBy(assertions.expression("to_encoded_polyline(ST_GeometryFromText('MULTILINESTRING ((-122.39174 37.77701))'))")::evaluate)
+        // Single-point linestrings are invalid in JTS (requires 0 or >= 2 points)
+        assertTrinoExceptionThrownBy(assertions.expression("to_encoded_polyline(ST_GeometryFromText('MULTILINESTRING ((-122.39174 37.77701, -122.39174 37.77701))'))")::evaluate)
                 .hasErrorCode(INVALID_FUNCTION_ARGUMENT);
     }
 }
