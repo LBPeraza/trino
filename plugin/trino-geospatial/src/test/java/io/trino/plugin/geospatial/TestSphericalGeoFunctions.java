@@ -34,6 +34,7 @@ import java.util.stream.Stream;
 
 import static com.google.common.io.Resources.getResource;
 import static io.airlift.slice.Slices.utf8Slice;
+import static io.trino.plugin.geospatial.GeoTestUtils.spatiallyEquals;
 import static io.trino.plugin.geospatial.GeometryType.GEOMETRY;
 import static io.trino.plugin.geospatial.SphericalGeographyType.SPHERICAL_GEOGRAPHY;
 import static io.trino.spi.type.DoubleType.DOUBLE;
@@ -89,7 +90,11 @@ public class TestSphericalGeoFunctions
         }
         Block block = builder.build();
         for (int i = 0; i < wktList.size(); i++) {
-            assertThat(wktList.get(i)).isEqualTo(SPHERICAL_GEOGRAPHY.getObjectValue(block, i));
+            String expected = wktList.get(i);
+            String actual = (String) SPHERICAL_GEOGRAPHY.getObjectValue(block, i);
+            assertThat(spatiallyEquals(expected, actual))
+                    .withFailMessage("Geometry mismatch at index %d!\nExpected: %s\nActual:   %s", i, expected, actual)
+                    .isTrue();
         }
     }
 
